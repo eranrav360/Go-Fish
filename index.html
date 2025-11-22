@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>טופס הזמנת חפיסות קלפים</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .card-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .card-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .card-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .card-option input[type="checkbox"] {
+            margin-bottom: 8px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .card-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .quantity-input input {
+            width: 60px;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .price-summary {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #667eea;
+        }
+
+        .price-summary h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            color: #666;
+        }
+
+        .total-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            border-top: 2px solid #667eea;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 הזמנת חפיסות קלפים</h1>
+        <p class="subtitle">מלא את הפרטים ובחר את החפיסות שברצונך להזמין</p>
+
+        <form id="orderForm">
+            <!-- פרטים אישיים -->
+            <div class="form-group">
+                <label for="name">שם מלא <span class="required">*</span></label>
+                <input type="text" id="name" name="name" required placeholder="הכנס שם מלא">
+            </div>
+
+            <div class="form-group">
+                <label for="email">אימייל <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required placeholder="example@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">טלפון <span class="required">*</span></label>
+                <input type="tel" id="phone" name="phone" required placeholder="050-1234567">
+            </div>
+
+            <!-- כתובת למשלוח -->
+            <div class="form-group">
+                <label for="address">כתובת למשלוח <span class="required">*</span></label>
+                <input type="text" id="address" name="address" required placeholder="רחוב, מספר בית">
+            </div>
+
+            <div class="form-group">
+                <label for="city">עיר <span class="required">*</span></label>
+                <input type="text" id="city" name="city" required placeholder="שם העיר">
+            </div>
+
+            <div class="form-group">
+                <label for="zip">מיקוד</label>
+                <input type="text" id="zip" name="zip" placeholder="1234567">
+            </div>
+
+            <!-- בחירת חפיסות קלפים -->
+            <div class="form-group">
+                <label>בחר סוג חפיסה <span class="required">*</span></label>
+                <div class="card-selection">
+                    <div class="card-option" data-price="90">
+                        <input type="checkbox" id="deck1" name="deck" value="with-box" data-price="90">
+                        <label for="deck1" style="cursor: pointer; margin: 0;">עם מארז<br>₪90</label>
+                        <div class="quantity-input">
+                            <label for="qty1" style="font-weight: normal; font-size: 0.9em;">כמות:</label>
+                            <input type="number" id="qty1" min="0" value="0" data-deck="with-box">
+                        </div>
+                    </div>
+
+                    <div class="card-option" data-price="70">
+                        <input type="checkbox" id="deck2" name="deck" value="without-box" data-price="70">
+                        <label for="deck2" style="cursor: pointer; margin: 0;">בלי מארז<br>₪70</label>
+                        <div class="quantity-input">
+                            <label for="qty2" style="font-weight: normal; font-size: 0.9em;">כמות:</label>
+                            <input type="number" id="qty2" min="0" value="0" data-deck="without-box">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- הערות -->
+            <div class="form-group">
+                <label for="notes">הערות נוספות</label>
+                <textarea id="notes" name="notes" placeholder="הוסף הערות או בקשות מיוחדות..."></textarea>
+            </div>
+
+            <!-- סיכום מחיר -->
+            <div class="price-summary" id="priceSummary" style="display: none;">
+                <h3>סיכום הזמנה</h3>
+                <div id="priceDetails"></div>
+                <div class="price-line total-price">
+                    <span>סה"כ:</span>
+                    <span id="totalPrice">₪0</span>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">שלח הזמנה</button>
+        </form>
+    </div>
+
+    <script>
+        // עדכון מחיר בזמן אמת
+        const qtyInputs = document.querySelectorAll('.quantity-input input');
+        const checkboxes = document.querySelectorAll('.card-option input[type="checkbox"]');
+
+        function updatePrice() {
+            let total = 0;
+            let details = '';
+            let hasItems = false;
+
+            qtyInputs.forEach((input, index) => {
+                const qty = parseInt(input.value) || 0;
+                const checkbox = checkboxes[index];
+                const price = parseInt(checkbox.dataset.price);
+                const deckName = checkbox.nextElementSibling.textContent.split('\n')[0];
+
+                if (qty > 0) {
+                    hasItems = true;
+                    const subtotal = qty * price;
+                    total += subtotal;
+                    details += `<div class="price-line"><span>${deckName} × ${qty}</span><span>₪${subtotal}</span></div>`;
+
+                    checkbox.checked = true;
+                    checkbox.parentElement.classList.add('selected');
+                } else {
+                    checkbox.checked = false;
+                    checkbox.parentElement.classList.remove('selected');
+                }
+            });
+
+            const summaryDiv = document.getElementById('priceSummary');
+            const priceDetails = document.getElementById('priceDetails');
+            const totalPrice = document.getElementById('totalPrice');
+
+            if (hasItems) {
+                summaryDiv.style.display = 'block';
+                priceDetails.innerHTML = details;
+                totalPrice.textContent = `₪${total}`;
+            } else {
+                summaryDiv.style.display = 'none';
+            }
+        }
+
+        qtyInputs.forEach(input => {
+            input.addEventListener('input', updatePrice);
+        });
+
+        checkboxes.forEach((checkbox, index) => {
+            checkbox.addEventListener('change', function() {
+                const qtyInput = qtyInputs[index];
+                if (this.checked && qtyInput.value == 0) {
+                    qtyInput.value = 1;
+                }
+                updatePrice();
+            });
+        });
+
+        // טיפול בשליחת הטופס
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // בדיקה שנבחרה לפחות חפיסה אחת
+            let hasSelection = false;
+            qtyInputs.forEach(input => {
+                if (parseInt(input.value) > 0) {
+                    hasSelection = true;
+                }
+            });
+
+            if (!hasSelection) {
+                alert('אנא בחר לפחות חפיסת קלפים אחת');
+                return;
+            }
+
+            // איסוף הנתונים
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                zip: document.getElementById('zip').value,
+                notes: document.getElementById('notes').value,
+                decks: [],
+                total: document.getElementById('totalPrice').textContent
+            };
+
+            qtyInputs.forEach((input, index) => {
+                const qty = parseInt(input.value);
+                if (qty > 0) {
+                    const checkbox = checkboxes[index];
+                    formData.decks.push({
+                        type: checkbox.value,
+                        name: checkbox.nextElementSibling.textContent.split('\n')[0],
+                        quantity: qty,
+                        price: parseInt(checkbox.dataset.price)
+                    });
+                }
+            });
+
+            // שליחה ל-Google Sheets
+            sendToGoogleSheets(formData);
+        });
+
+        async function sendToGoogleSheets(data) {
+            // הצג הודעת טעינה
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'שולח הזמנה...';
+            submitBtn.disabled = true;
+
+            try {
+                // כאן תצטרך להוסיף את ה-URL של Google Apps Script
+                // שייצר עבורך בשלב הבא
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMGnjIpBqvgJ3Fqf-FHKASMcNDxTFkp6KDXoiYhI__eGXL-qvVU6PBE-VGYR8x09D1qQ/exec';
+
+                // הכנת הנתונים לשליחה
+                const payload = {
+                    timestamp: new Date().toLocaleString('he-IL'),
+                    name: data.name,
+                    email: data.email,
+                    phone: data.phone,
+                    address: data.address,
+                    city: data.city,
+                    zip: data.zip,
+                    deckType: data.decks.map(d => d.name).join(', '),
+                    quantities: data.decks.map(d => d.quantity).join(', '),
+                    total: data.total,
+                    notes: data.notes
+                };
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('Order submitted:', data);
+                alert('ההזמנה נשלחה בהצלחה!\n\nתקבל אישור בקרוב.');
+
+                // איפוס הטופס
+                document.getElementById('orderForm').reset();
+                updatePrice();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('אירעה שגיאה בשליחת ההזמנה.\nנסה שוב או צור קשר טלפונית.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
