@@ -187,12 +187,75 @@
             padding-top: 10px;
             margin-top: 10px;
         }
+
+        .payment-info {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 10px;
+            border-right: 4px solid #ffc107;
+            margin-top: 15px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .payment-info h4 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .payment-info p {
+            color: #666;
+            margin: 8px 0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .payment-info strong {
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .copy-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🃏 הזמנת חפיסות קלפים</h1>
         <p class="subtitle">מלא את הפרטים ובחר את החפיסות שברצונך להזמין</p>
+
+        <!-- תמונת דוגמה -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="https://via.placeholder.com/500x300/667eea/ffffff?text=חפיסות+קלפים"
+                 alt="חפיסות קלפים"
+                 style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <p style="font-size: 0.85em; color: #999; margin-top: 10px;">* להחלפה בתמונה של החפיסות</p>
+        </div>
 
         <form id="orderForm">
             <!-- פרטים אישיים -->
@@ -251,11 +314,18 @@
                 </div>
             </div>
 
-            <!-- הערות -->
+            <!-- אמצעי תשלום -->
             <div class="form-group">
-                <label for="notes">הערות נוספות</label>
-                <textarea id="notes" name="notes" placeholder="הוסף הערות או בקשות מיוחדות..."></textarea>
+                <label>אמצעי תשלום <span class="required">*</span></label>
+                <select id="paymentMethod" name="paymentMethod" required>
+                    <option value="">בחר אמצעי תשלום</option>
+                    <option value="bit-paybox">ביט / פייבוקס</option>
+                    <option value="bank-transfer">העברה בנקאית</option>
+                </select>
             </div>
+
+            <!-- פרטי תשלום -->
+            <div id="paymentDetails" style="display: none;"></div>
 
             <!-- סיכום מחיר -->
             <div class="price-summary" id="priceSummary" style="display: none;">
@@ -275,6 +345,58 @@
         // עדכון מחיר בזמן אמת
         const qtyInputs = document.querySelectorAll('.quantity-input input');
         const checkboxes = document.querySelectorAll('.card-option input[type="checkbox"]');
+
+        // טיפול בבחירת אמצעי תשלום
+        document.getElementById('paymentMethod').addEventListener('change', function() {
+            const paymentDetails = document.getElementById('paymentDetails');
+            const method = this.value;
+
+            if (method === 'bit-paybox') {
+                paymentDetails.innerHTML = `
+                    <div class="payment-info">
+                        <h4>📱 פרטי תשלום בביט / פייבוקס</h4>
+                        <p>יש לשלוח את התשלום למספר:</p>
+                        <p><strong>052-6130854</strong>
+                        <button class="copy-button" onclick="copyToClipboard('0526130854')">העתק</button></p>
+                        <p style="font-size: 0.85em; margin-top: 12px; color: #999;">
+                            💡 לאחר ביצוע התשלום, ההזמנה תטופל בהקדם
+                        </p>
+                    </div>
+                `;
+                paymentDetails.style.display = 'block';
+            } else if (method === 'bank-transfer') {
+                paymentDetails.innerHTML = `
+                    <div class="payment-info">
+                        <h4>🏦 פרטי העברה בנקאית</h4>
+                        <p><strong>בנק הפועלים</strong></p>
+                        <p>סניף: <strong>559</strong>
+                        <button class="copy-button" onclick="copyToClipboard('559')">העתק</button></p>
+                        <p>מספר חשבון: <strong>680009</strong>
+                        <button class="copy-button" onclick="copyToClipboard('680009')">העתק</button></p>
+                        <p style="font-size: 0.85em; margin-top: 12px; color: #999;">
+                            💡 לאחר ביצוע ההעברה, ההזמנה תטופל בהקדם
+                        </p>
+                    </div>
+                `;
+                paymentDetails.style.display = 'block';
+            } else {
+                paymentDetails.style.display = 'none';
+            }
+        });
+
+        // פונקציית העתקה ללוח
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓ הועתק!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('לא ניתן להעתיק. אנא העתק ידנית: ' + text);
+            });
+        }
 
         function updatePrice() {
             let total = 0;
@@ -346,6 +468,9 @@
             }
 
             // איסוף הנתונים
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentMethodText = paymentMethod === 'bit-paybox' ? 'ביט / פייבוקס' : 'העברה בנקאית';
+
             const formData = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
@@ -353,7 +478,7 @@
                 address: document.getElementById('address').value,
                 city: document.getElementById('city').value,
                 zip: document.getElementById('zip').value,
-                notes: document.getElementById('notes').value,
+                paymentMethod: paymentMethodText,
                 decks: [],
                 total: document.getElementById('totalPrice').textContent
             };
@@ -399,7 +524,7 @@
                     deckType: data.decks.map(d => d.name).join(', '),
                     quantities: data.decks.map(d => d.quantity).join(', '),
                     total: data.total,
-                    notes: data.notes
+                    paymentMethod: data.paymentMethod
                 };
 
                 const response = await fetch(SCRIPT_URL, {
