@@ -288,30 +288,36 @@
                 <label for="zip">מיקוד</label>
                 <input type="text" id="zip" name="zip" placeholder="1234567">
             </div>
-
-            <!-- בחירת חפיסות קלפים -->
+            <!-- בחירת כמות חפיסות -->
             <div class="form-group">
-                <label>בחר סוג חפיסה <span class="required">*</span></label>
-                <div class="card-selection">
-                    <div class="card-option" data-price="90">
-                        <input type="checkbox" id="deck1" name="deck" value="with-box" data-price="90">
-                        <label for="deck1" style="cursor: pointer; margin: 0;">עם מארז<br>₪90</label>
-                        <div class="quantity-input">
-                            <label for="qty1" style="font-weight: normal; font-size: 0.9em;">כמות:</label>
-                            <input type="number" id="qty1" min="0" value="0" data-deck="with-box">
-                        </div>
+                <label>כמות חפיסות <span class="required">*</span></label>
+                <div style="display: flex; align-items: center; gap: 15px; background: #f0f4ff; padding: 20px; border-radius: 10px; border-right: 4px solid #667eea;">
+                    <div style="flex: 1;">
+                        <p style="margin: 0 0 5px 0; font-size: 1.1em; font-weight: bold; color: #333;">חפיסת קלפים (כולל מארז)</p>
+                        <p style="margin: 0; color: #667eea; font-size: 1.3em; font-weight: bold;">₪70</p>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #666;">*לא כולל משלוח</p>
                     </div>
-
-                    <div class="card-option" data-price="70">
-                        <input type="checkbox" id="deck2" name="deck" value="without-box" data-price="70">
-                        <label for="deck2" style="cursor: pointer; margin: 0;">בלי מארז<br>₪70</label>
-                        <div class="quantity-input">
-                            <label for="qty2" style="font-weight: normal; font-size: 0.9em;">כמות:</label>
-                            <input type="number" id="qty2" min="0" value="0" data-deck="without-box">
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="quantity" style="font-weight: normal; margin: 0;">כמות:</label>
+                        <input type="number" id="quantity" name="quantity" min="1" value="1" required 
+                               style="width: 80px; text-align: center; font-size: 1.1em; font-weight: bold;">
                     </div>
                 </div>
             </div>
+
+            <!-- אפשרויות משלוח -->
+            <div class="form-group">
+                <label>אפשרות משלוח <span class="required">*</span></label>
+                <select id="shippingMethod" name="shippingMethod" required>
+                    <option value="">בחר אפשרות משלוח</option>
+                    <option value="pickup" data-price="0">איסוף עצמי (חינם)</option>
+                    <option value="regular" data-price="20">משלוח רגיל - ₪20</option>
+                    <option value="registered" data-price="27">דואר רשום - ₪27</option>
+                </select>
+            </div>
+
+            <!-- פרטי איסוף עצמי -->
+            <div id="pickupDetails" style="display: none;"></div>
 
             <!-- אמצעי תשלום -->
             <div class="form-group">
@@ -341,12 +347,38 @@
     </div>
 
     <script>
-        // עדכון מחיר בזמן אמת
-        const qtyInputs = document.querySelectorAll('.quantity-input input');
-        const checkboxes = document.querySelectorAll('.card-option input[type="checkbox"]');
+        const CARD_PRICE = 70;
+        const quantityInput = document.getElementById('quantity');
+        const shippingSelect = document.getElementById('shippingMethod');
+        const paymentSelect = document.getElementById('paymentMethod');
+
+        // טיפול באפשרות משלוח
+        shippingSelect.addEventListener('change', function() {
+            const pickupDetails = document.getElementById('pickupDetails');
+
+            if (this.value === 'pickup') {
+                pickupDetails.innerHTML = `
+                    <div class="payment-info">
+                        <h4>📍 פרטי איסוף עצמי</h4>
+                        <p><strong>כתובת:</strong> נחל איילון 6, צור יצחק</p>
+                        <p><strong>יש לתאם מראש:</strong></p>
+                        <p>ערן - <a href="tel:0526130854" style="color: #667eea; text-decoration: none;">052-6130854</a>
+                        <button class="copy-button" onclick="copyToClipboard('0526130854')">העתק</button></p>
+                        <p style="font-size: 0.85em; margin-top: 12px; color: #999;">
+                            💡 חשוב לתאם מראש את מועד האיסוף
+                        </p>
+                    </div>
+                `;
+                pickupDetails.style.display = 'block';
+            } else {
+                pickupDetails.style.display = 'none';
+            }
+
+            updatePrice();
+        });
 
         // טיפול בבחירת אמצעי תשלום
-        document.getElementById('paymentMethod').addEventListener('change', function() {
+        paymentSelect.addEventListener('change', function() {
             const paymentDetails = document.getElementById('paymentDetails');
             const method = this.value;
 
@@ -397,36 +429,26 @@
             });
         }
 
+        // עדכון מחיר
+        quantityInput.addEventListener('input', updatePrice);
+
         function updatePrice() {
-            let total = 0;
-            let details = '';
-            let hasItems = false;
+            const quantity = parseInt(quantityInput.value) || 0;
+            const shippingPrice = parseInt(shippingSelect.selectedOptions[0]?.dataset.price || 0);
 
-            qtyInputs.forEach((input, index) => {
-                const qty = parseInt(input.value) || 0;
-                const checkbox = checkboxes[index];
-                const price = parseInt(checkbox.dataset.price);
-                const deckName = checkbox.nextElementSibling.textContent.split('\n')[0];
-
-                if (qty > 0) {
-                    hasItems = true;
-                    const subtotal = qty * price;
-                    total += subtotal;
-                    details += `<div class="price-line"><span>${deckName} × ${qty}</span><span>₪${subtotal}</span></div>`;
-
-                    checkbox.checked = true;
-                    checkbox.parentElement.classList.add('selected');
-                } else {
-                    checkbox.checked = false;
-                    checkbox.parentElement.classList.remove('selected');
-                }
-            });
+            const cardsTotal = quantity * CARD_PRICE;
+            const total = cardsTotal + shippingPrice;
 
             const summaryDiv = document.getElementById('priceSummary');
             const priceDetails = document.getElementById('priceDetails');
             const totalPrice = document.getElementById('totalPrice');
 
-            if (hasItems) {
+            if (quantity > 0 && shippingSelect.value) {
+                let details = `<div class="price-line"><span>חפיסות × ${quantity}</span><span>₪${cardsTotal}</span></div>`;
+
+                const shippingText = shippingSelect.selectedOptions[0].text;
+                details += `<div class="price-line"><span>משלוח: ${shippingText}</span><span>₪${shippingPrice}</span></div>`;
+
                 summaryDiv.style.display = 'block';
                 priceDetails.innerHTML = details;
                 totalPrice.textContent = `₪${total}`;
@@ -435,40 +457,36 @@
             }
         }
 
-        qtyInputs.forEach(input => {
-            input.addEventListener('input', updatePrice);
-        });
-
-        checkboxes.forEach((checkbox, index) => {
-            checkbox.addEventListener('change', function() {
-                const qtyInput = qtyInputs[index];
-                if (this.checked && qtyInput.value == 0) {
-                    qtyInput.value = 1;
-                }
-                updatePrice();
-            });
-        });
-
         // טיפול בשליחת הטופס
         document.getElementById('orderForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // בדיקה שנבחרה לפחות חפיסה אחת
-            let hasSelection = false;
-            qtyInputs.forEach(input => {
-                if (parseInt(input.value) > 0) {
-                    hasSelection = true;
-                }
-            });
+            const quantity = parseInt(quantityInput.value);
+            const shipping = shippingSelect.value;
+            const payment = paymentSelect.value;
 
-            if (!hasSelection) {
-                alert('אנא בחר לפחות חפיסת קלפים אחת');
+            if (quantity < 1) {
+                alert('אנא הזן כמות תקינה');
+                return;
+            }
+
+            if (!shipping) {
+                alert('אנא בחר אפשרות משלוח');
+                return;
+            }
+
+            if (!payment) {
+                alert('אנא בחר אמצעי תשלום');
                 return;
             }
 
             // איסוף הנתונים
-            const paymentMethod = document.getElementById('paymentMethod').value;
-            const paymentMethodText = paymentMethod === 'bit-paybox' ? 'ביט / פייבוקס' : 'העברה בנקאית';
+            const shippingPrice = parseInt(shippingSelect.selectedOptions[0].dataset.price);
+            const shippingText = shippingSelect.selectedOptions[0].text;
+            const paymentMethodText = payment === 'bit-paybox' ? 'ביט / פייבוקס' : 'העברה בנקאית';
+
+            const cardsTotal = quantity * CARD_PRICE;
+            const total = cardsTotal + shippingPrice;
 
             const formData = {
                 name: document.getElementById('name').value,
@@ -477,23 +495,13 @@
                 address: document.getElementById('address').value,
                 city: document.getElementById('city').value,
                 zip: document.getElementById('zip').value,
+                quantity: quantity,
+                shippingMethod: shippingText,
+                shippingPrice: shippingPrice,
                 paymentMethod: paymentMethodText,
-                decks: [],
-                total: document.getElementById('totalPrice').textContent
+                cardsTotal: cardsTotal,
+                total: total
             };
-
-            qtyInputs.forEach((input, index) => {
-                const qty = parseInt(input.value);
-                if (qty > 0) {
-                    const checkbox = checkboxes[index];
-                    formData.decks.push({
-                        type: checkbox.value,
-                        name: checkbox.nextElementSibling.textContent.split('\n')[0],
-                        quantity: qty,
-                        price: parseInt(checkbox.dataset.price)
-                    });
-                }
-            });
 
             // שליחה ל-Google Sheets
             sendToGoogleSheets(formData);
@@ -507,8 +515,6 @@
             submitBtn.disabled = true;
 
             try {
-                // כאן תצטרך להוסיף את ה-URL של Google Apps Script
-                // שייצר עבורך בשלב הבא
                 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMGnjIpBqvgJ3Fqf-FHKASMcNDxTFkp6KDXoiYhI__eGXL-qvVU6PBE-VGYR8x09D1qQ/exec';
 
                 // הכנת הנתונים לשליחה
@@ -520,10 +526,12 @@
                     address: data.address,
                     city: data.city,
                     zip: data.zip,
-                    deckType: data.decks.map(d => d.name).join(', '),
-                    quantities: data.decks.map(d => d.quantity).join(', '),
-                    total: data.total,
-                    paymentMethod: data.paymentMethod
+                    quantity: data.quantity,
+                    shippingMethod: data.shippingMethod,
+                    paymentMethod: data.paymentMethod,
+                    cardsTotal: `₪${data.cardsTotal}`,
+                    shippingCost: `₪${data.shippingPrice}`,
+                    total: `₪${data.total}`
                 };
 
                 const response = await fetch(SCRIPT_URL, {
@@ -540,7 +548,9 @@
 
                 // איפוס הטופס
                 document.getElementById('orderForm').reset();
-                updatePrice();
+                document.getElementById('pickupDetails').style.display = 'none';
+                document.getElementById('paymentDetails').style.display = 'none';
+                document.getElementById('priceSummary').style.display = 'none';
 
             } catch (error) {
                 console.error('Error:', error);
