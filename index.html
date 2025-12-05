@@ -482,7 +482,7 @@
         }
 
         // טיפול בשליחת הטופס
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const quantity = parseInt(quantityInput.value);
@@ -501,6 +501,13 @@
 
             if (!payment) {
                 alert('אנא בחר אמצעי תשלום');
+                return;
+            }
+
+            // בדיקת מלאי לפני שליחה
+            const inventoryCheck = await checkInventory(quantity);
+            if (!inventoryCheck.success) {
+                alert('⚠️ אין מספיק מלאי!\n\n' + inventoryCheck.message);
                 return;
             }
 
@@ -534,6 +541,29 @@
             sendToGoogleSheets(formData);
         });
 
+        // פונקציה לבדיקת מלאי
+        async function checkInventory(quantity) {
+            try {
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMGnjIpBqvgJ3Fqf-FHKASMcNDxTFkp6KDXoiYhI__eGXL-qvVU6PBE-VGYR8x09D1qQ/exec';
+                const url = `${SCRIPT_URL}?action=checkInventory&quantity=${quantity}`;
+
+                console.log('Checking inventory for quantity:', quantity);
+
+                const response = await fetch(url, {
+                    method: 'GET'
+                });
+
+                const result = await response.json();
+                console.log('Inventory check result:', result);
+
+                return result;
+            } catch (error) {
+                console.error('Error checking inventory:', error);
+                // במקרה של שגיאה, נניח שיש מלאי (כדי לא לחסום הזמנות)
+                return { success: true };
+            }
+        }
+
         async function sendToGoogleSheets(data) {
             // הצג הודעת טעינה
             const submitBtn = document.querySelector('.submit-btn');
@@ -565,7 +595,7 @@
 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    redirect: 'follow',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -573,27 +603,6 @@
                 });
 
                 console.log('Response received');
-
-                // ניסיון לקרוא את התגובה
-                const responseText = await response.text();
-                console.log('Response text:', responseText);
-
-                let result;
-                try {
-                    result = JSON.parse(responseText);
-                } catch (e) {
-                    // אם אין JSON, זה אומר שהכל הצליח (תגובה ריקה)
-                    result = { success: true };
-                }
-
-                // בדיקה אם יש שגיאת מלאי
-                if (result.success === false && result.error === 'insufficient_inventory') {
-                    alert('⚠️ אין מספיק מלאי!\n\n' + result.message);
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                    return;
-                }
-
                 console.log('Order submitted:', data);
                 alert('ההזמנה נשלחה בהצלחה!\n\nתקבל אישור בקרוב.');
 
